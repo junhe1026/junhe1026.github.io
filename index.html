@@ -127,11 +127,11 @@
     </header>
     <div class="entry">
       
-        <p>Javacripts 应用中有一些小的代码块非常有用，这里摘录了一些我自己认为以后会用到的小技巧，留作以后查询之用。（摘录自这篇文章<a href="http://modernweb.com/2013/12/23/45-useful-javascript-tips-tricks-and-best-practices/" target="_blank" rel="external">45 Useful JavaScript Tips, Tricks and Best Practices</a>）。还有这里<a href="http://www.toolmao.com/things_you_dont_know_about_frontend" target="_blank" rel="external">前端冷知识集锦,很多都是web安全能用到的小技巧</a></p>
-<h3 id="判断一个JS变量是不是数字">判断一个JS变量是不是数字</h3>
+        <p>Javacripts 应用中有一些小的代码块非常有用，这里摘录了一些我自己认为以后会用到的小技巧，留作以后查询之用。（摘录自这篇文章<a href="http://modernweb.com/2013/12/23/45-useful-javascript-tips-tricks-and-best-practices/" target="_blank" rel="external">45 Useful JavaScript Tips, Tricks and Best Practices</a>，还有这里<a href="http://www.toolmao.com/things_you_dont_know_about_frontend" target="_blank" rel="external">前端冷知识集锦,很多都是web安全能用到的小技巧</a>）。</p>
+<h2 id="判断一个JS变量是不是数字">判断一个JS变量是不是数字</h2>
 <figure class="highlight Javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">isNumber</span><span class="params">(n)</span></span>{</div><div class="line">    <span class="keyword">return</span> !<span class="built_in">isNaN</span>(<span class="built_in">parseFloat</span>(n)) && <span class="built_in">isFinite</span>(n);</div><div class="line">}</div></pre></td></tr></table></figure>
 
-<h3 id="标签自动解析URL">标签自动解析URL</h3>
+<h2 id="标签自动解析URL">标签自动解析URL</h2>
 <figure class="highlight Javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> a = <span class="built_in">document</span>.createElement(<span class="string">'a'</span>);</div><div class="line">a.href = <span class="string">'http://www.cnblogs.com/wayou/p/'</span>;</div><div class="line"><span class="built_in">console</span>.log(a.host);</div></pre></td></tr></table></figure>
 
 
