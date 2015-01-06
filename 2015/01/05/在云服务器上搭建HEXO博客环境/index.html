@@ -110,6 +110,7 @@ HEXO 博客环境搭建
 <a id="more"></a>
 
 
+<hr>
 <h2 id="Nodejs">Nodejs</h2>
 <p>HEXO 博客系统基于Nodejs，所以我们需要先安装Nodejs。利用Cent OS 自带的包管理工具“yum”可以轻松安装。首先更新yum packages：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yum -y update</div></pre></td></tr></table></figure>
@@ -121,13 +122,44 @@ HEXO 博客环境搭建
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">yum install nodejs</div><div class="line">yum install npm</div></pre></td></tr></table></figure>
 
 <p>其他系统Nodejs的安装，请参考<a href="https://github.com/joyent/node/wiki/installing-node.js-via-package-manager" target="_blank" rel="external">这里</a></p>
+<hr>
 <h2 id="Nginx">Nginx</h2>
 <p>要让服务器响应HTTP请求，需要相应的Web服务器来处理这些请求。Nginx 是目前比较流行的高性能HTTP和反向代理服务器，还能处理负载均衡，非常好用。安装和配置Nginx过程如下（参考<a href="http://articles.slicehost.com/2008/12/17/centos-installing-nginx-via-yum" target="_blank" rel="external">这里</a>, 如果你对Nginx感兴趣，这里还有taobao团队写的<a href="http://tengine.taobao.org/book/" target="_blank" rel="external">《Nginx开发从入门到精通》</a>的ebook。</p>
 <p>同样用 yum 安装</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yum install nginx</div></pre></td></tr></table></figure>
 
-<p>root权限</p>
-<p>(未完待续)</p>
+<p>安装成功后，启动Nginx。</p>
+<p>设置Nginx 服务在服务器运行时自动启动</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">sudo</span> /sbin/chkconfig nginx on</div></pre></td></tr></table></figure>
+
+<p>启动Nginx 服务</p>
+<figure class="highlight eash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">sudo /etc/init.d/nginx <span class="operator"><span class="keyword">start</span></span></div><div class="line"><span class="keyword">or</span></div><div class="line">sudo service nginx <span class="keyword">start</span></div></pre></td></tr></table></figure>
+
+<p>查看Nginx 服务状态</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">sudo</span> /etc/init.d/nginx status</div></pre></td></tr></table></figure>
+
+<p>当状态显示为下图这样，就可以尝试在浏览器中用ip地址访问云服务器<br><img src="http://7s1r2q.com1.z0.glb.clouddn.com/img/Nginx-status.png" alt=""></p>
+<p>当显示为这样，Congratulations, Nginx可以用了<br><img src="http://7s1r2q.com1.z0.glb.clouddn.com/img/Nginx-2.png" alt=""></p>
+<hr>
+<h2 id="网站部署和网址迁移">网站部署和网址迁移</h2>
+<p>服务器环境已经搭好了, 可以干正事了。尽管博客迁移到了云服务器，内容管理我还是选择托管在Github上面，这样，博客的更新流程就变为：</p>
+<blockquote>
+<p>本地撰写页面 -&gt; 本地预览 -&gt; hexo一键发布到Github -&gt; 定时更新服务器端Git目录。</p>
+</blockquote>
+<p>So，只要在服务器端<code>git clone</code>一个版本库，写个定时更新脚本让crontab按时执行就OK了。这其中有个小坑，我当时直接把版本库扔在<code>/root/</code>下面，在后来的外网访问中，Nginx提示<code>403 Forbidden</code>，因为<code>/root/</code>目录没有足够的others权限，导致不能访问，所以要放在一个权限合适的文件夹下，保证外网能访问。</p>
+<p>部署好博客网站目录，就剩下最后一步网址迁移了。</p>
+<ol>
+<li>改变域名指向<br>之前的博客是在DNSPOD上做了个CNAME，把<code>www</code>指向<code>xxx.github.io</code>。我想保留git pages的访问，反正那边的内容也是最新的，于是重新配了个<code>blog</code>子域名指向<code>xxx.github.io</code>。而<code>www</code>则重新添加了一个<code>A</code>记录，指向云服务器的IP。这样访问<code>www.hejun.me</code>会向云服务器请求，而<code>blog.hejun.me</code>则是向git pages请求，做好内容同步，这2个网站应该是一模一样的。</li>
+<li>配置Nginx，接受和处理访问请求<br>Nginx主配置文件位于 <code>/etc/nginx/nginx.conf</code>，里面有一些全局配置，如果有一些特殊的需求，具体的配置参数可以参考<a href="http://articles.slicehost.com/2009/2/20/centos-nginx-configuration" target="_blank" rel="external">这里</a>。在主配置文件的<code>http</code>模块下，有这么一行，</li>
+</ol>
+<figure class="highlight besh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"># Load config <span class="keyword">files</span> from the /etc/nginx/<span class="keyword">conf</span>.<span class="keyword">d</span> directory</div><div class="line"># The default server <span class="keyword">is</span> in <span class="keyword">conf</span>.<span class="keyword">d</span>/default.<span class="keyword">conf</span></div><div class="line">include /etc/nginx/<span class="keyword">conf</span>.<span class="keyword">d</span>/*.<span class="keyword">conf</span>;</div></pre></td></tr></table></figure>
+
+<p>这里引入了<code>/etc/nginx/conf.d/</code>文件夹具体的服务器配置文件，我对<code>www.hejun.me</code>的服务器配置就放在了这里。在<code>/etc/nginx/conf.d/</code>下面，新建了一个<code>hejun.me.conf</code>的配置文件，其中内容如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 永久重定向www.hejun.me来的请求，访问hejun.me</span></div><div class="line"><span class="comment"># redirect www.hejun.me to hejun.me</span></div><div class="line">server {</div><div class="line">    listen   <span class="number">80</span>; </div><div class="line">    server_name  www.hejun.me;</div><div class="line">    rewrite ^/(.*) http://hejun.me/<span class="variable">$1</span> permanent;</div><div class="line">}</div><div class="line"></div><div class="line"><span class="comment"># hejun.me 的配置</span></div><div class="line">server {</div><div class="line">    listen       <span class="number">80</span>;  <span class="comment"># 监听默认80端口</span></div><div class="line">    server_name  hejun.me;  <span class="comment"># 请求URL来源 hejun.me</span></div><div class="line"></div><div class="line">    access_log  /dir/to/logs/access.log;  <span class="comment"># 访问日志保存位置</span></div><div class="line">    error_log  /dir/to/logs/error.log;  <span class="comment"># 错误日志保存位置</span></div><div class="line">    </div><div class="line">    <span class="comment"># 访问请求处理对应的目录</span></div><div class="line">    location / {</div><div class="line">        root   /dir/to/git/repo;  <span class="comment"># 指定了博客的git库目录，当有请求时，访问这个目录下的文件</span></div><div class="line">        index  index.html index.htm;  <span class="comment"># 指定了index页面的文件</span></div><div class="line">    }</div><div class="line">}</div></pre></td></tr></table></figure>
+
+<p>这是一个比较简洁静态服务器实现，然后<code>service nginx reload</code>一下配置文件，我们的云服务器就搭建完成了。需要注意的是，日志目录要提前建好，否则nginx reload会报错，提示目录不存在。</p>
+<h3 id="至此，博客搬家圆满完成了。">至此，博客搬家圆满完成了。</h3>
+<p>第一次写带一点点技术向的流水账，觉得好混乱，忘各位看官海涵。有啥建议或意见请不吝留言赐教，谢谢。</p>
 
       
     </div>
