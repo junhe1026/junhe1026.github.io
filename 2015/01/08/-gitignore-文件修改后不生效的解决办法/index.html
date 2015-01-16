@@ -7,7 +7,8 @@
   <meta name="author" content="Juno Ho">
   
   <meta name="description" content="参考这里:http://segmentfault.com/q/1010000000430426, 被采纳的回答。
-在git 版本控制的时候，往往会碰到.gitignore文件记录不全的问题。尤其是在使用IDE开发时，IDE会产生很多隐藏缓存或者配置文件。当我们准备提交时，混入这些不想提交的缓存，我们">
+在git 版本控制的时候，往往会碰到.gitignore文件记录不全的问题。尤其是在使用IDE开发时，IDE会产生很多隐藏缓存或者配置文件。当我们准备提交时，混入这些不想提交的缓存，我们通常会在.gitignore文件中继续添加ignore记录。然后我们git checkout这些记录，并提交。
+当我们下次提交时，这些文件又阴魂不散出现在里面。其实，.gitignore文件中的记录只会去匹配还没有被track的文件，那些已经提交过的文件，即使你后来再加.gitignore，git 也不会去忽略它们。">
   
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -89,6 +90,8 @@
         <p>参考这里:<a href="http://segmentfault.com/q/1010000000430426" target="_blank" rel="external">http://segmentfault.com/q/1010000000430426</a>, 被采纳的回答。</p>
 <p>在git 版本控制的时候，往往会碰到<code>.gitignore</code>文件记录不全的问题。尤其是在使用IDE开发时，IDE会产生很多隐藏缓存或者配置文件。当我们准备提交时，混入这些不想提交的缓存，我们通常会在<code>.gitignore</code>文件中继续添加ignore记录。然后我们<code>git checkout</code>这些记录，并提交。</p>
 <p>当我们下次提交时，这些文件又阴魂不散出现在里面。其实，<code>.gitignore</code>文件中的记录只会去匹配还没有被track的文件，那些已经提交过的文件，即使你后来再加<code>.gitignore</code>，git 也不会去忽略它们。</p>
+<a id="more"></a>
+
 <p>正确的做法是：</p>
 <ol>
 <li>清除这些不需要提交文件的track, 比如：我们不想要提交<code>Pycharm</code>的<code>.idea</code>配置文件夹</li>

@@ -129,90 +129,6 @@
       
         <p>写<code>Python</code>已经整整一年了，在过去的一年，更多的是把<code>Python</code>当成是一种生产工具用来做web开发。使用的都是“肤浅”的<code>Python</code>基础语法。感觉自己就<code>Python</code>语言的理解一点都没有长进，还停留在为了完成“Intelligent Data and Probablistic Inference” coursework学<code>Python</code>时那个水平。</p>
 <p>临近年底了，公司项目也稍微空闲了一点，自己有更多的可支配时间，逛了一堆杂七杂八的技术类网站，人家在讨论或评论的时候各种专业名词，专业术语，显得那么高大上，我完全插不上嘴，感觉到了世界深深的恶意。当然更多的是认识到了自己做为一个低端码农要走的路还有很长。于是乎，转过头来想再看看<code>Python</code>的一些教程。看的过程中，觉得这一年以来，虽然自己感觉没长进，事实上还是有收获的。对一些高级教程中提到的高级<code>Python</code>语法，似乎我也能看懂一丢丢了。这篇小文章就记录一些最近看到的<code>Python</code>心得好了，供之后回顾。</p>
-<hr>
-<h4 id="豁然开朗的几句话">豁然开朗的几句话</h4>
-<ul>
-<li>Python一切皆对象</li>
-<li><strong>闭包</strong>：包含了环境变量的 <em>函数对象</em></li>
-<li>Python采用引用计数(reference count)的内存回收机制</li>
-</ul>
-<hr>
-<h4 id="迭代器和生成器">迭代器和生成器</h4>
-<ul>
-<li><p>迭代器(iterator)</p>
-<p> 迭代器的本质是一个循环对象。创建一个简单的循环对象需要包含<code>__iter__()</code>,<code>next()</code>方法和结束时抛出<code>StopIteration</code>异常。比如迭代List中 间隔 的元素：</p>
-</li>
-</ul>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyIter</span><span class="params">(object)</span>:</span></div><div class="line">     <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, l)</span>:</span></div><div class="line">             self.l = l</div><div class="line">             self.cur_index = <span class="number">0</span></div><div class="line"></div><div class="line">     <span class="function"><span class="keyword">def</span> <span class="title">__iter__</span><span class="params">(self)</span>:</span></div><div class="line">             <span class="keyword">return</span> self</div><div class="line"></div><div class="line">     <span class="function"><span class="keyword">def</span> <span class="title">next</span><span class="params">(self)</span>:</span></div><div class="line">             <span class="keyword">if</span> self.cur_index &lt; len(self.l):</div><div class="line">                     cur_ele = (self.l)[self.cur_index]</div><div class="line">                     self.cur_index += <span class="number">2</span></div><div class="line">                     <span class="keyword">return</span> cur_ele</div><div class="line">             <span class="keyword">raise</span> StopIteration()</div><div class="line">             </div><div class="line"></div><div class="line"><span class="keyword">for</span> i <span class="keyword">in</span> MyIter([<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>]):</div><div class="line">      print(i)</div><div class="line">      </div><div class="line">out:</div><div class="line"><span class="number">1</span></div><div class="line"><span class="number">3</span></div><div class="line"><span class="number">5</span></div></pre></td></tr></table></figure>
-
-
-<ul>
-<li><p>生成器(generator)</p>
-<p>生成器的核心是<code>yield</code>，每当你的生成器代码内遇到<code>yield</code>，生成器就会暂停并返回一个元素。以下是一个简单的fibonacci列表生成器：</p>
-</li>
-</ul>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">fib</span><span class="params">()</span>:</span></div><div class="line">     a,b = <span class="number">0</span>,<span class="number">1</span></div><div class="line">     <span class="keyword">while</span> <span class="keyword">True</span>:</div><div class="line">             <span class="keyword">yield</span> b</div><div class="line">             a,b = b,a+b </div><div class="line"></div><div class="line">f = fib()</div><div class="line">print([f.next() <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">10</span>)])</div><div class="line"></div><div class="line">out:</div><div class="line">[<span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">8</span>, <span class="number">13</span>, <span class="number">21</span>, <span class="number">34</span>, <span class="number">55</span>]</div></pre></td></tr></table></figure>
-
-
-<hr>
-<h4 id="函数对象">函数对象</h4>
-<p>   <code>Python</code>一切皆对象，函数也是对象，所以函数同样可以作为一个参数传递。典型的接受函数作为对象的<code>Python</code>内置函数有3个。</p>
-<ul>
-<li><code>map</code>(func, seq[,seq,…])<br>map函数会将第一个参数的函数对象应用于后面参数的列表。例如：</li>
-</ul>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">map(<span class="keyword">lambda</span> x: x*<span class="number">2</span>, [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>])</div><div class="line"></div><div class="line">out:</div><div class="line">[<span class="number">2</span>,<span class="number">4</span>,<span class="number">6</span>]</div></pre></td></tr></table></figure>
-
-<ul>
-<li><code>filter</code>(func, seq)<br>filter函数将会以第一个函数参数为条件去判断seq，返回一个满足函数参数条件的seq。例如：从<code>list</code>筛选出偶数</li>
-</ul>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">filter(<span class="keyword">lambda</span> x: x % <span class="number">2</span> == <span class="number">0</span>, [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>])</div><div class="line"></div><div class="line">out:</div><div class="line">[<span class="number">2</span>,<span class="number">4</span>]</div></pre></td></tr></table></figure>
-
-<ul>
-<li><code>reduce</code>(func, seq[, initial])<br>reduce函数会将函数参数应用于seq中的所有函数, 返回的对象是一个值。例如：<code>list</code>求和</li>
-</ul>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">reduce((<span class="keyword">lambda</span> x,y: x+y),[<span class="number">1</span>,<span class="number">2</span>,<span class="number">5</span>,<span class="number">7</span>,<span class="number">9</span>], <span class="number">10</span>)</div><div class="line"></div><div class="line">out:</div><div class="line"><span class="number">34</span></div></pre></td></tr></table></figure>
-
-
-<p>值得注意的是，<code>reduce</code>可以接收第三个inital参数，用于函   数参数的初级运算。</p>
-<hr>
-<h4 id="动态类型">动态类型</h4>
-<p><code>Python</code>在赋值的过程中，不需要申明变量类型，已经申明的变量也可以重新赋值来改变类型。改变类型的本质其实是a这个变量引用指向了不同的内存地址。如：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">a=<span class="number">1</span>    <span class="comment"># a 是整形</span></div><div class="line">a=<span class="string">'1'</span>  <span class="comment"># a 变成了str</span></div></pre></td></tr></table></figure>
-
-<p><code>Python</code>中的用于存储数据的对象分为可变对象（mutable object）和（immutable object）。可变对象可以改变对象自身。不可变对象不能改变对象自身，只能改变引用的指向。</p>
-<ul>
-<li>可变对象：<strong>list</strong>, <strong>dict</strong></li>
-<li>不可变对象：<strong>tuple</strong>, <strong>str</strong>, <strong>int</strong>等</li>
-</ul>
-<hr>
-<h4 id="闭包(closure)">闭包(closure)</h4>
-<p>先看个简单的例子：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">line_conf</span><span class="params">()</span>:</span></div><div class="line">        b = <span class="number">15</span></div><div class="line">        <span class="function"><span class="keyword">def</span> <span class="title">line</span><span class="params">(x)</span>:</span></div><div class="line">                <span class="keyword">return</span> <span class="number">2</span>*x+b</div><div class="line">        <span class="keyword">return</span> line</div><div class="line"></div><div class="line">a_line = line_conf()</div><div class="line">print(a_line(<span class="number">10</span>))</div><div class="line"></div><div class="line">out:</div><div class="line"><span class="number">35</span>  <span class="comment">#2*10+15</span></div></pre></td></tr></table></figure>
-
-<p><code>Python</code>中，函数也是对象，可以作为另一个对象的返回。在<strong>line_conf</strong>中，我们定义了一个线性方程<strong>line</strong>的函数，并把这个线性方程返回出来。这个线性方程<strong>line</strong>中有一个变量<strong>b</strong>由<strong>line_conf</strong>定义，即使我们在外面定义一个<code>b=5</code>，也不会影响line_conf中的b。这个<strong>line</strong>和里面的<strong>b</strong>就是一个闭包，他是包含了环境变量的一个函数对象。</p>
-<hr>
-<h4 id="装饰器(decorator)">装饰器(decorator)</h4>
-<p>装饰器在<code>Python</code>web框架中很常用。可以理解为，对一个函数执行前的一些预处理。基本的语法为函数套函数。例如：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># -*- coding: utf-8 -*-</span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">show_name</span><span class="params">(func)</span>:</span></div><div class="line">    <span class="string">""" func 为被装饰的函数对象 """</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">inner_func</span><span class="params">(*args, **kwargs)</span>:</span></div><div class="line">        <span class="string">""" inner_func 用来预处理我们想做的事 """</span></div><div class="line">        <span class="keyword">print</span> <span class="string">'func name is: %s'</span> % func.__name__</div><div class="line">        func(*args, **kwargs)  <span class="comment"># 执行被装饰函数func</span></div><div class="line">        <span class="keyword">return</span></div><div class="line">        </div><div class="line">    <span class="keyword">return</span> inner_func  <span class="comment"># 把包装好的函数对象返回出去</span></div><div class="line">    </div><div class="line"></div><div class="line"><span class="decorator">@show_name</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">add</span><span class="params">(a, b)</span>:</span></div><div class="line">    print(a+b)</div><div class="line"></div><div class="line">add(<span class="number">1</span>,<span class="number">2</span>)</div><div class="line">-------</div><div class="line">out:</div><div class="line">func name <span class="keyword">is</span>: add</div><div class="line"><span class="number">3</span></div></pre></td></tr></table></figure>
-
-<p>可以看到，装饰器只是把被装饰函数放到一个包装好的函数对象中，在这个新的函数对象中，可以加入一些其他的代码逻辑。如果要对装饰器传参，只要在目前2层的结构外面，再套一层即可，比如：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># -*- coding: utf-8 -*-</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">show</span><span class="params">(show_type)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">to_show</span><span class="params">(func)</span>:</span></div><div class="line">        <span class="function"><span class="keyword">def</span> <span class="title">inner_func</span><span class="params">(*args, **kwargs)</span>:</span> </div><div class="line">            <span class="comment"># 根据装饰器参数，有不同输出          </span></div><div class="line">            <span class="keyword">if</span> show_type == <span class="string">'name'</span>:</div><div class="line">                <span class="keyword">print</span> <span class="string">'func name is: %s'</span> % func.__name__</div><div class="line">            <span class="keyword">else</span>:</div><div class="line">                <span class="keyword">print</span> <span class="string">'func doc: %s'</span> % func.__doc__</div><div class="line">            func(*args, **kwargs)</div><div class="line">            <span class="keyword">return</span></div><div class="line">        <span class="keyword">return</span> inner_func  </div><div class="line">    <span class="keyword">return</span> to_show</div><div class="line">    </div><div class="line">    </div><div class="line"><span class="decorator">@show('name')</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">add</span><span class="params">(a, b)</span>:</span></div><div class="line">    print(a+b)</div><div class="line">    </div><div class="line"><span class="decorator">@show('doc')</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">div</span><span class="params">(a, b)</span>:</span></div><div class="line">    <span class="string">"""division function"""</span></div><div class="line">    print(a/b)</div><div class="line">    </div><div class="line"></div><div class="line">add(<span class="number">1</span>,<span class="number">2</span>)</div><div class="line">div(<span class="number">10</span>,<span class="number">5</span>)</div><div class="line">-------</div><div class="line">out:</div><div class="line">func name <span class="keyword">is</span>: add</div><div class="line"><span class="number">3</span></div><div class="line">func doc: division function</div><div class="line"><span class="number">2</span></div></pre></td></tr></table></figure>
-
-<hr>
-<h4 id="Python垃圾回收">Python垃圾回收</h4>
-<p><code>Python</code>的垃圾回收机制建立在<strong>引用计数</strong>(reference count)之上，当我们创建对象时，会对这个对象有一个引用计数。简单创建和回收过程可以用下面的小例子说明：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">a = <span class="string">'one'</span></div><div class="line"><span class="comment"># 'one' 的 reference count = 1</span></div><div class="line">b = <span class="string">'one'</span></div><div class="line"><span class="comment"># 'one' 的 reference count = 2</span></div><div class="line"><span class="keyword">del</span> a</div><div class="line"><span class="comment"># 'one' 的 reference count = 1</span></div><div class="line"><span class="keyword">del</span> b</div><div class="line"><span class="comment"># 'one' 的 reference count = 0</span></div><div class="line"><span class="comment"># 内存回收</span></div></pre></td></tr></table></figure>
-
-<p>高级回收机制我就直接引用了：</p>
-<blockquote>
-<p>Python同时采用了分代(generation)回收的策略。这一策略的基本假设是，存活时间越久的对象，越不可能在后面的程序中变成垃圾。我们的程序往往会产生大量的对象，许多对象很快产生和消失，但也有一些对象长期被使用。出于信任和效率，对于这样一些“长寿”对象，我们相信它们的用处，所以减少在垃圾回收中扫描它们的频率。</p>
-<p>Python将所有的对象分为0，1，2三代。所有的新建对象都是0代对象。当某一代对象经历过垃圾回收，依然存活，那么它就被归入下一代对象。垃圾回收启动时，一定会扫描所有的0代对象。如果0代经过一定次数垃圾回收，那么就启动对0代和1代的扫描清理。当1代也经历了一定次数的垃圾回收后，那么会启动对0，1，2，即对所有对象进行扫描。</p>
-<p>这两个次数即上面get_threshold()返回的(700, 10, 10)返回的两个10。也就是说，每10次0代垃圾回收，会配合1次1代的垃圾回收；而每10次1代的垃圾回收，才会有1次的2代垃圾回收。</p>
-</blockquote>
-<h4 id="不知不觉写了这么多了，在写的过程中，自己又practice了一下，知识点又加深了印象。实践出真知啊~">不知不觉写了这么多了，在写的过程中，自己又practice了一下，知识点又加深了印象。实践出真知啊~</h4>
-<hr>
-<p>参考：<a href="http://www.cnblogs.com/vamei/archive/2012/09/13/2682778.html" target="_blank" rel="external">Python快速教程-Vamei</a></p>
-<p>这个也不错：<a href="http://www.liaoxuefeng.com/wiki/001374738125095c955c1e6d8bb493182103fac9270762a000" target="_blank" rel="external">Python教程-廖雪峰</a></p>
 
       
     </div>
@@ -278,18 +194,6 @@
         <p>参考这里:<a href="http://segmentfault.com/q/1010000000430426" target="_blank" rel="external">http://segmentfault.com/q/1010000000430426</a>, 被采纳的回答。</p>
 <p>在git 版本控制的时候，往往会碰到<code>.gitignore</code>文件记录不全的问题。尤其是在使用IDE开发时，IDE会产生很多隐藏缓存或者配置文件。当我们准备提交时，混入这些不想提交的缓存，我们通常会在<code>.gitignore</code>文件中继续添加ignore记录。然后我们<code>git checkout</code>这些记录，并提交。</p>
 <p>当我们下次提交时，这些文件又阴魂不散出现在里面。其实，<code>.gitignore</code>文件中的记录只会去匹配还没有被track的文件，那些已经提交过的文件，即使你后来再加<code>.gitignore</code>，git 也不会去忽略它们。</p>
-<p>正确的做法是：</p>
-<ol>
-<li>清除这些不需要提交文件的track, 比如：我们不想要提交<code>Pycharm</code>的<code>.idea</code>配置文件夹</li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">git rm --cache .idea/*</div></pre></td></tr></table></figure>
-
-<ol>
-<li>在<code>.gitignore</code>文件中添加这条记录</li>
-<li>提交并推送</li>
-</ol>
-<p>完成！ 以后就不会再出现这些文件了。</p>
-<p>P.S.: <strong>GitHub</strong> 在创建新版本库时，可以选择自动生成一个开发语言相关的<code>.gitignore</code>文件，里面的记录还是蛮全的，我们自己在新建项目时，可以参考这个文件。</p>
 
       
     </div>
