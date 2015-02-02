@@ -110,6 +110,71 @@ var _hmt = _hmt || [];
   <div class="post-content">
     <header>
       
+      <time datetime="2015-01-29T12:22:08.000Z"><a href="/2015/01/29/MySQL性能优化学习心得/">2015-01-29, 20:22:08, 周四</a></time>
+
+  
+    <h1 class="title"><a href="/2015/01/29/MySQL性能优化学习心得/">MySQL性能优化学习心得</a></h1>
+  
+
+
+  
+  <div class="categories">
+  	<i class="fa fa-folder-open"></i>
+    <a href="/categories/心得/">心得</a>
+  </div>
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/MySQL-数据库-优化/">MySQL 数据库 优化</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <p>最近公司系统切换到了腾讯云。不知道是我们系统的问题，还是腾讯云数据库的问题（我们认为是腾讯云的问题 ：）），经常出现<br><code>Lost connection to MySQL server during query</code>的错误，然后服务就挂在那里了。查了<a href="http://dev.mysql.com/doc/refman/5.5/en/error-lost-connection.html" target="_blank" rel="external">MySQL官方文档</a>，改了云数据库的几个<code>timeout</code>相关参数，还是会出错误。于是，我们就开始去挑代码的毛病了。</p>
+<p>经过分析，发现大部分情况下，该错误都出现在访问同一个页面。该页面的SQL语句用来查询历史消费记录，关联了不少表，单独拎出来执行也确实不快（需要1.5s），但也不至于让<code>connection timeout</code>呀。没有其他办法了，就试着优化这个SQL吧。临时抱佛脚，看了一些MySQL优化相关的文章，在某张表中，加了一个字段的索引<code>index</code>，速度一下子上去了, 80ms就解决了。似乎问题也没有再出现了。</p>
+<p>于是把MySQL优化看到的一些东西就记这了。</p>
+
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2015/01/29/MySQL性能优化学习心得/#more" class="more-link"><i class="fa fa-chevron-right"></i>Read More</a>
+        </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
       <time datetime="2015-01-16T02:44:38.000Z"><a href="/2015/01/16/深入Python，学习心得/">2015-01-16, 10:44:38, 周五</a></time>
 
   

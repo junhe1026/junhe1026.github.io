@@ -1,0 +1,252 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>MySQL性能优化学习心得 | Keep Calm  &amp;&amp;  Carry On</title>
+  <meta name="author" content="Juno Ho">
+  
+  <meta name="description" content="最近公司系统切换到了腾讯云。不知道是我们系统的问题，还是腾讯云数据库的问题（我们认为是腾讯云的问题 ：）），经常出现Lost connection to MySQL server during query的错误，然后服务就挂在那里了。查了MySQL官方文档，改了云数据库的几个timeout相关参数，还是会出错误。于是，我们就开始去挑代码的毛病了。
+经过分析，发现大部分情况下，该错误都出现在访问同一个页面。该页面的SQL语句用来查询历史消费记录，关联了不少表，单独拎出来执行也确实不快（需要1.5s），但也不至于让connection timeout呀。没有其他办法了，就试着优化这个SQL吧。临时抱佛脚，看了一些MySQL优化相关的文章，在某张表中，加了一个字段的索引index，速度一下子上去了, 80ms就解决了。似乎问题也没有再出现了。
+于是把MySQL优化看到的一些东西就记这了。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="MySQL性能优化学习心得"/>
+  <meta property="og:site_name" content="Keep Calm  &amp;&amp;  Carry On"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Keep Calm  &amp;&amp;  Carry On" type="application/atom+xml">
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css" type="text/css">
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" type="text/css">
+<link rel="stylesheet" href="/css/style.css" type="text/css">
+
+  <script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <script>
+var _hmt = _hmt || [];
+(function() {
+   var hm = document.createElement("script");
+     hm.src = "//hm.baidu.com/hm.js?9ce46feb241322f17974b0d95350b6e4";
+       var s = document.getElementsByTagName("script")[0]; 
+         s.parentNode.insertBefore(hm, s);
+	 })();
+  </script>
+</head>
+
+<body>
+  <header id="header" class='normal_mode'>
+    <nav id="main-nav">
+  <ul class='container'>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+  </header>
+  <div id="content" class="container">
+    <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2015-01-29T12:22:08.000Z"><a href="/2015/01/29/MySQL性能优化学习心得/">2015-01-29, 20:22:08, 周四</a></time>
+
+  
+    <h1 class="title">MySQL性能优化学习心得</h1>
+  
+
+
+  
+  <div class="categories">
+  	<i class="fa fa-folder-open"></i>
+    <a href="/categories/心得/">心得</a>
+  </div>
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/MySQL-数据库-优化/">MySQL 数据库 优化</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <p>最近公司系统切换到了腾讯云。不知道是我们系统的问题，还是腾讯云数据库的问题（我们认为是腾讯云的问题 ：）），经常出现<br><code>Lost connection to MySQL server during query</code>的错误，然后服务就挂在那里了。查了<a href="http://dev.mysql.com/doc/refman/5.5/en/error-lost-connection.html" target="_blank" rel="external">MySQL官方文档</a>，改了云数据库的几个<code>timeout</code>相关参数，还是会出错误。于是，我们就开始去挑代码的毛病了。</p>
+<p>经过分析，发现大部分情况下，该错误都出现在访问同一个页面。该页面的SQL语句用来查询历史消费记录，关联了不少表，单独拎出来执行也确实不快（需要1.5s），但也不至于让<code>connection timeout</code>呀。没有其他办法了，就试着优化这个SQL吧。临时抱佛脚，看了一些MySQL优化相关的文章，在某张表中，加了一个字段的索引<code>index</code>，速度一下子上去了, 80ms就解决了。似乎问题也没有再出现了。</p>
+<p>于是把MySQL优化看到的一些东西就记这了。</p>
+<a id="more"></a>
+
+<h3 id="1-explain">1.explain</h3>
+<p>在SQL语句前面，加一个<code>explain</code>关键词，MySQL就会把这条语句的执行情况分析给你看。最重要的指标应该是<code>rows</code>，它记录了执行过程中每张表被检索的行数，如果行数比较大，那么就可能需要考虑建索引了。</p>
+<p>在分析SQL语句时，可以在<code>select</code>后面加上<code>SQL_NO_CACHE</code>，保证SQL执行时不用缓存，便于比较优化前后的效果。</p>
+<h3 id="2-索引">2.索引</h3>
+<h4 id="什么是索引">什么是索引</h4>
+<p>索引是数据库根据字段（column）的值额外建立的一个快速定位到表内某一行的<code>树</code>，常用的结构是<code>B+ Tree</code>。树的特性决定了在我们搜索索引相关的字段时，可以在树的高度(h)的范围内找到我们想要的值，而不必全表扫描，从而大大提高了SQL的效率。</p>
+<h4 id="联合索引">联合索引</h4>
+<p>可以针对多个字段建立一个联合索引。多个索引在执行时遵循“最左匹配原则”，MySQL引擎会按顺序从左导游建各个字段的索引。</p>
+<h4 id="创建原则">创建原则</h4>
+<p>引用自 <a href="http://tech.meituan.com/mysql-index.html" target="_blank" rel="external">MySQL索引原理及慢查询优化</a></p>
+<blockquote>
+<p>1.最左前缀匹配原则，非常重要的原则，mysql会一直向右匹配直到遇到范围查询(&gt;、&lt;、between、like)就停止匹配，比如a = 1 and b = 2 and c &gt; 3 and d = 4 如果建立(a,b,c,d)顺序的索引，d是用不到索引的，如果建立(a,b,d,c)的索引则都可以用到，a,b,d的顺序可以任意调整。</p>
+<p>2.=和in可以乱序，比如a = 1 and b = 2 and c = 3 建立(a,b,c)索引可以任意顺序，mysql的查询优化器会帮你优化成索引可以识别的形式</p>
+<p>3.尽量选择区分度高的列作为索引,区分度的公式是count(distinct col)/count(*)，表示字段不重复的比例，比例越大我们扫描的记录数越少，唯一键的区分度是1，而一些状态、性别字段可能在大数据面前区分度就是0，那可能有人会问，这个比例有什么经验值吗？使用场景不同，这个值也很难确定，一般需要join的字段我们都要求是0.1以上，即平均1条扫描10条记录</p>
+<p>4.索引列不能参与计算，保持列“干净”，比如from_unixtime(create_time) = ’2014-05-29’就不能使用到索引，原因很简单，b+树中存的都是数据表中的字段值，但进行检索时，需要把所有元素都应用函数才能比较，显然成本太大。所以语句应该写成create_time = unix_timestamp(’2014-05-29’);</p>
+<p>5.尽量的扩展索引，不要新建索引。比如表中已经有a的索引，现在要加(a,b)的索引，那么只需要修改原来的索引即可</p>
+</blockquote>
+<h4 id="索引的弊端">索引的弊端</h4>
+<p>不必要的索引会浪费MySQL的存储空间，同时也会让MySQL浪费时间去判断该选用哪个索引。由于索引是一个额外存储的树，每当执行MySQL插入，更新，删除操作时，需要一定的时间去更新索引树，对于写入操作频繁的表，性能会收到影响。</p>
+<h3 id="3-其他优化手段">3.其他优化手段</h3>
+<ul>
+<li>把字段较多的表中补偿修改的字段分出去，建立新表</li>
+<li>优化字段类型，如“性别”选择 <code>ENUM</code> 类型</li>
+<li>尽量使用<code>NOT NULL</code></li>
+<li>避免使用<code>select *</code></li>
+</ul>
+<p>优化就先记录到这里，参考文章：</p>
+<p><a href="http://dev.mysql.com/doc/refman/5.0/en/procedure-analyse.html" target="_blank" rel="external">http://dev.mysql.com/doc/refman/5.0/en/procedure-analyse.html</a></p>
+<p><a href="http://coolshell.cn/articles/1846.html" target="_blank" rel="external">MySQL性能优化的最佳20+条经验</a></p>
+<p><a href="http://tech.meituan.com/mysql-index.html" target="_blank" rel="external">MySQL索引原理及慢查询优化</a></p>
+
+      
+    </div>
+    <footer>
+      
+          
+          <div class="clearfix"></div>
+          <nav id="pagination">
+  
+  
+    <a href="/2015/01/16/深入Python，学习心得/" class="alignright next">Prev<i class="fa fa-long-arrow-right"></i></a>
+  
+  <div class="clearfix"></div>
+</nav>
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+	<!-- Duoshuo Comment BEGIN -->
+	<div class="ds-thread" data-thread-key="/2015/01/29/MySQL性能优化学习心得/"></div>
+	<!-- Duoshuo Comment END -->
+	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+	<script type="text/javascript">
+	var duoshuoQuery = {short_name:"keepcalm"};
+		(function() {
+			var ds = document.createElement('script');
+			ds.type = 'text/javascript';ds.async = true;
+			ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+			ds.charset = 'UTF-8';
+			(document.getElementsByTagName('head')[0] 
+			 || document.getElementsByTagName('body')[0]).appendChild(ds);
+		})();
+		</script>
+	<!-- 多说公共JS代码 end -->
+
+</section>
+
+
+
+
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div>
+  
+  &copy; 2015 Juno Ho
+  
+</div>
+Powered by <a href="http://zespia.tw/hexo/" title="Hexo" target="_blank" rel="external">Hexo</a>, <a href="http://pages.github.com/" title="GitHub Pages" target="_blank" rel="external">GitHub Pages</a> and <a href="http://www.aliyun.com/" title="阿里云(Aliyun)" target="_blank" rel="external">阿里云(Aliyun)</a>
+<div>
+  <a href="http://www.miitbeian.gov.cn/" title="浙ICP备15001318号" target="_blank" rel="external">浙ICP备15001318号</a>
+</div>
+<div class="clearfix"></div>
+</footer>
+  
+<script src="/js/jquery.imagesloaded.min.js" type="text/javascript"></script>
+<script src="/js/gallery.js" type="text/javascript"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js" type="text/javascript"></script>
+
+
+
+
+
+    <script type="text/javascript">
+        (function(){
+
+            $(window).scroll(function(){
+
+                var scrollTop = $(window).scrollTop();
+                if ( scrollTop >200 ){
+                    $("#main-nav").removeClass('normal_mode').addClass('top_mode');
+                } else{
+                    $("#main-nav").removeClass('top_mode').addClass('normal_mode');
+                }
+
+            });
+
+        })();
+    </script>
+
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript">
+  (function($){
+    $('.fancybox').fancybox({
+      'titlePosition': 'inside'
+    });
+  })(jQuery);
+  </script>
+
+
+
+
+<script type="text/javascript">
+  
+  $(function(){
+
+    $('.title').hover(
+      function() {      
+        $(this).stop().animate(
+          {'marginLeft': '10px'}, 200
+        );   
+      }, 
+      function() {       
+        $(this).stop().animate({'marginLeft': '0px'}, 200);      
+      
+    });   
+
+  });
+
+</script>
+
+
+</body>
+</html>
