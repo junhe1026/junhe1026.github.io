@@ -1,0 +1,266 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Tornado框架中Celery配置实践 | Keep Calm  &amp;&amp;  Carry On</title>
+  <meta name="author" content="Juno Ho">
+  
+  <meta name="description" content="之前的项目中，消息队列服务用Redis源生的brpoplpush特性+Python脚本的方式实现。优点是利用json作为数据格式，消息可读性强，队列操作简单。缺点也比较明显，队列的部署比较麻烦，一个任务一个进程，同时，队列调度不好控制。
+新项目同样需要用到消息队列，稍微了解了一下Celery，发现它的功能还是蛮强大的，不仅可以用作消息队列，还可以实现定时脚本，同时又有多种监控工具。于是就决定用Celery。
+Celery的文档写的蛮好的，有入门教程，有结合项目的实践，还有详细的API文档，基本的需求在官方文档的帮助下都可以得到满足。Celery的学习我就不展开了。
+本文将列出我在tornado项目中celery配置的目录结构，简要介绍Celery的工作流程及我为什么要这样配置。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="Tornado框架中Celery配置实践"/>
+  <meta property="og:site_name" content="Keep Calm  &amp;&amp;  Carry On"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Keep Calm  &amp;&amp;  Carry On" type="application/atom+xml">
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css" type="text/css">
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" type="text/css">
+<link rel="stylesheet" href="/css/style.css" type="text/css">
+
+  <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <script>
+var _hmt = _hmt || [];
+(function() {
+   var hm = document.createElement("script");
+     hm.src = "//hm.baidu.com/hm.js?9ce46feb241322f17974b0d95350b6e4";
+       var s = document.getElementsByTagName("script")[0]; 
+         s.parentNode.insertBefore(hm, s);
+	 })();
+  </script>
+</head>
+
+<body>
+  <header id="header" class='normal_mode'>
+    <nav id="main-nav">
+  <ul class='container'>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+  </header>
+  <div id="content" class="container">
+    <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2015-05-06T14:19:29.000Z"><a href="/2015/05/06/celery-config/">2015-05-06, 22:19:29, 周三</a></time>
+
+  
+    <h1 class="title">Tornado框架中Celery配置实践</h1>
+  
+
+
+  
+  <div class="categories">
+  	<i class="fa fa-folder-open"></i>
+    <a href="/categories/心得/">心得</a>
+  </div>
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/Python-Celery-Tornado/">Python Celery Tornado</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <p>之前的项目中，消息队列服务用<code>Redis</code>源生的brpoplpush特性+<code>Python</code>脚本的方式实现。优点是利用json作为数据格式，消息可读性强，队列操作简单。缺点也比较明显，队列的部署比较麻烦，一个任务一个进程，同时，队列调度不好控制。</p>
+<p>新项目同样需要用到消息队列，稍微了解了一下<a href="http://docs.celeryproject.org/en/latest/index.html" target="_blank" rel="external"><strong>Celery</strong></a>，发现它的功能还是蛮强大的，不仅可以用作消息队列，还可以实现定时脚本，同时又有多种监控工具。于是就决定用<strong>Celery</strong>。</p>
+<p><strong>Celery</strong>的文档写的蛮好的，有入门教程，有结合项目的实践，还有详细的API文档，基本的需求在官方文档的帮助下都可以得到满足。Celery的学习我就不展开了。</p>
+<p>本文将列出我在tornado项目中celery配置的目录结构，简要介绍Celery的工作流程及我为什么要这样配置。</p>
+<h2><a id="more"></a></h2>
+<h4 id="场景：">场景：</h4>
+<p>Tornado web框架下，利用redis作为broker，用Celery实现消息队列和定时脚本。</p>
+<h4 id="Celery在Tornado项目中的目录结构">Celery在Tornado项目中的目录结构</h4>
+<p>假设我们的tornado项目目录为proj</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">proj/</div><div class="line">    apps/ <span class="comment"># tornado 应用目录</span></div><div class="line">    其他tornado项目文件夹省略/</div><div class="line">    celery/ <span class="comment"># celery 应用目录</span></div><div class="line">        __init__.py </div><div class="line">        celery_init.py <span class="comment"># celery app 所在module</span></div><div class="line">        celeryconfig.py <span class="comment"># celery开发环境配置</span></div><div class="line">        celeryconfig-prod.py <span class="comment"># celery生成环境配置</span></div><div class="line">        workers/ <span class="comment"># tasks 目录</span></div><div class="line">            __init__.py </div><div class="line">            sender.py <span class="comment"># 异步消息处理tasks</span></div><div class="line">            schedular.py <span class="comment"># 定时任务tasks</span></div></pre></td></tr></table></figure>
+
+<h4 id="Celery简单工作流程">Celery简单工作流程</h4>
+<ul>
+<li>创建一个celery application，简称app。</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># proj/celery/celery_init.py</span></div><div class="line"></div><div class="line"><span class="keyword">from</span> celery <span class="keyword">import</span> Celery</div><div class="line"></div><div class="line"><span class="comment"># 初始化</span></div><div class="line">app = Celery(</div><div class="line">    <span class="string">'celery'</span>, <span class="comment"># 一般app名字与包名相同</span></div><div class="line">    broker=‘redis://path-to-redis-broker’</div><div class="line">)</div><div class="line"></div><div class="line"><span class="comment"># 针对不同环境加载celery配置，注意，这里用到了一个环境变量CELERY_DEBUG来控制，用法下面会讲到</span></div><div class="line"></div><div class="line"></div><div class="line"><span class="keyword">if</span> os.environ.get(<span class="string">'CELERY_DEBUG'</span>, <span class="keyword">False</span>):</div><div class="line">    <span class="comment"># 测试环境配置</span></div><div class="line">    app.config_from_object(<span class="string">'consumers.celeryconfig'</span>)</div><div class="line"><span class="keyword">else</span>:</div><div class="line">    <span class="comment"># 生成环境配置</span></div><div class="line">    app.config_from_object(<span class="string">'consumers.celeryconfig-prod'</span>)</div></pre></td></tr></table></figure>
+
+<ul>
+<li>利用<code>app.task</code>装饰器在app下注册tasks</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># proj/celery/workers/sender.py</span></div><div class="line"></div><div class="line"><span class="decorator">@app.task</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">add</span><span class="params">(x, y)</span>:</span></div><div class="line">    <span class="keyword">return</span> x, y</div></pre></td></tr></table></figure>
+
+<ul>
+<li>开启worker(也可以称作consumer)，等待任务</li>
+</ul>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 利用celery命令行开启worker，正式环境下，会有supervisord来控制</span></div><div class="line"><span class="comment"># 开发环境命令</span></div><div class="line"><span class="keyword">export</span> CELERY_DEBUG=True && celery -A consumers.celery_init:app worker <span class="operator">-l</span> info</div><div class="line"></div><div class="line"><span class="comment"># 生产环境不需要CELERY_DEBUG</span></div><div class="line">celery -A consumers.celery_init:app worker <span class="operator">-l</span> info</div></pre></td></tr></table></figure>
+
+<ul>
+<li>在我们的tornado应用中，引入需要异步处理的task方法，调用</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"># 假设在一个handler中需要调用add方法</div><div class="line"></div><div class="line">from celery.workers.sender import add</div><div class="line"></div><div class="line">class MainHandler(web.RequestHandler)</div><div class="line">    def get(self):</div><div class="line">        add.delay(1,2)</div></pre></td></tr></table></figure>
+
+<ul>
+<li>delay方法会把add方法的调用和参数(1,2)打包生成一条json数据，推入redis broker。</li>
+<li>在redis收到这条数据时，之前开启的worker会被安排来执行具体的<code>add</code>方法。完成消息的异步处理。</li>
+</ul>
+<h4 id="为什么这么配置">为什么这么配置</h4>
+<p>Celery有三种配置方式：</p>
+<ol>
+<li>直接在<code>proj/celery/celery_init.py</code> 文件中<code>update</code>我们初始化的<code>app</code>。缺点：不够灵活，无法区分开发环境和生成环境的配置。</li>
+<li>利用<code>app</code>的<code>config_from_envvar</code>方法在命令行启动worker时传入配置文件。缺点：配置文件路径需要指定，不同服务器不一样，不方便</li>
+<li>利用<code>app.config_from_object</code>从配置文件加载配置，比较灵活，利用环境变量控制不同配置文件，也比较符合习惯。</li>
+</ol>
+<h4 id="定时脚本设置">定时脚本设置</h4>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># proj/celery/celeryconfig.py</span></div><div class="line"></div><div class="line"><span class="keyword">from</span> celery.schedules <span class="keyword">import</span> crontab</div><div class="line"></div><div class="line"><span class="comment"># 在配置文件中设置定时任务，可以按crontab的方式设置时间间隔</span></div><div class="line"><span class="comment"># 以下配置设置了一个每天凌晨3点20去同步内容的定时脚本</span></div><div class="line">CELERYBEAT_SCHEDULE = {</div><div class="line">    <span class="string">'sync-hx-msg-every-day'</span>: {</div><div class="line">        <span class="string">'task'</span>: <span class="string">'consumers.workers.scheduler.sync_hx_messages'</span>,</div><div class="line">        <span class="string">'schedule'</span>: crontab(hour=<span class="number">3</span>, minute=<span class="number">20</span>),</div><div class="line">    },</div><div class="line">}</div></pre></td></tr></table></figure>
+
+<hr>
+<p>写的好烂。就当个笔记吧。（掩面逃……）</p>
+
+      
+    </div>
+    <footer>
+      
+          
+          <div class="clearfix"></div>
+          <nav id="pagination">
+  
+  
+    <a href="/2015/04/08/https-server-deploy/" class="alignright next">Prev<i class="fa fa-long-arrow-right"></i></a>
+  
+  <div class="clearfix"></div>
+</nav>
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+	<!-- Duoshuo Comment BEGIN -->
+	<div class="ds-thread" data-thread-key="/2015/05/06/celery-config/"></div>
+	<!-- Duoshuo Comment END -->
+	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+	<script type="text/javascript">
+	var duoshuoQuery = {short_name:"keepcalm"};
+		(function() {
+			var ds = document.createElement('script');
+			ds.type = 'text/javascript';ds.async = true;
+			ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+			ds.charset = 'UTF-8';
+			(document.getElementsByTagName('head')[0] 
+			 || document.getElementsByTagName('body')[0]).appendChild(ds);
+		})();
+		</script>
+	<!-- 多说公共JS代码 end -->
+
+</section>
+
+
+
+
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div>
+  
+  &copy; 2015 Juno Ho
+  
+</div>
+Powered by <a href="http://zespia.tw/hexo/" title="Hexo" target="_blank" rel="external">Hexo</a>, <a href="http://pages.github.com/" title="GitHub Pages" target="_blank" rel="external">GitHub Pages</a> and <a href="http://www.aliyun.com/" title="阿里云(Aliyun)" target="_blank" rel="external">阿里云(Aliyun)</a>
+<div>
+  <a href="http://www.miitbeian.gov.cn/" title="浙ICP备15001318号" target="_blank" rel="external">浙ICP备15001318号</a>
+</div>
+<div class="clearfix"></div>
+</footer>
+  
+<script src="/js/jquery.imagesloaded.min.js" type="text/javascript"></script>
+<script src="/js/gallery.js" type="text/javascript"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js" type="text/javascript"></script>
+
+
+
+
+
+    <script type="text/javascript">
+        (function(){
+
+            $(window).scroll(function(){
+
+                var scrollTop = $(window).scrollTop();
+                if ( scrollTop >200 ){
+                    $("#main-nav").removeClass('normal_mode').addClass('top_mode');
+                } else{
+                    $("#main-nav").removeClass('top_mode').addClass('normal_mode');
+                }
+
+            });
+
+        })();
+    </script>
+
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript">
+  (function($){
+    $('.fancybox').fancybox({
+      'titlePosition': 'inside'
+    });
+  })(jQuery);
+  </script>
+
+
+
+
+<script type="text/javascript">
+  
+  $(function(){
+
+    $('.title').hover(
+      function() {      
+        $(this).stop().animate(
+          {'marginLeft': '10px'}, 200
+        );   
+      }, 
+      function() {       
+        $(this).stop().animate({'marginLeft': '0px'}, 200);      
+      
+    });   
+
+  });
+
+</script>
+
+
+</body>
+</html>
