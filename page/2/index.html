@@ -110,6 +110,69 @@ var _hmt = _hmt || [];
   <div class="post-content">
     <header>
       
+      <time datetime="2015-03-11T14:23:47.000Z"><a href="/2015/03/11/stack-queue/">2015-03-11, 22:23:47, 周三</a></time>
+
+  
+    <h1 class="title"><a href="/2015/03/11/stack-queue/">用2个Stack实现Queue</a></h1>
+  
+
+
+  
+  <div class="categories">
+  	<i class="fa fa-folder-open"></i>
+    <a href="/categories/心得/">心得</a>
+  </div>
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/Python/">Python</a>, <a href="/tags/数据结构/">数据结构</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <p>偶尔在网上看到一个题目“两个栈实现一个队列”， 感觉蛮有意思的。就随手用<code>python</code>写了一点代码。思路也非常简单，<code>Stack</code>的特性是FILO，而<code>Queue</code>的特性是FIFO。2个Stack，一个S1专门用来存（即enqueue）,一个S2专门用来取（即dequeue）。唯一需要注意的点是，当存的时候，仍然是栈的操作，一个个“压”进专门存的栈S1，而取的时候，当S2为空的时候，把S1中的所有的元素，依次取出，“压进”S2，此时，S2中的元素，正好是进栈的顺序了，也就实现了FIFO。直到将S2中的再次取空时，重复元素转移的操作，保证每次取出的元素是最先进栈的。</p>
+
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2015/03/11/stack-queue/#more" class="more-link"><i class="fa fa-chevron-right"></i>Read More</a>
+        </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
       <time datetime="2015-03-04T11:57:25.000Z"><a href="/2015/03/04/gcd-and-prime-algorithm/">2015-03-04, 19:57:25, 周三</a></time>
 
   
@@ -337,70 +400,6 @@ var _hmt = _hmt || [];
       
         <div class="alignleft">
             <a href="/2015/01/08/gitignore-cache-clean/#more" class="more-link"><i class="fa fa-chevron-right"></i>Read More</a>
-        </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-
-  <article class="post">
-  
-    <div class="gallery">
-  <div class="photoset">
-    
-      <img src="">
-    
-  </div>
-  <div class="control">
-    <div class="prev"></div>
-    <div class="next"></div>
-  </div>
-</div>
-  
-  <div class="post-content">
-    <header>
-      
-      <time datetime="2015-01-05T03:08:13.000Z"><a href="/2015/01/05/deploy-hexo-on-cloud/">2015-01-05, 11:08:13, 周一</a></time>
-
-  
-    <h1 class="title"><a href="/2015/01/05/deploy-hexo-on-cloud/">在云服务器上搭建HEXO博客环境</a></h1>
-  
-
-
-  
-  <div class="categories">
-  	<i class="fa fa-folder-open"></i>
-    <a href="/categories/心得/">心得</a>
-  </div>
-
-
-  
-  <div class="tags">
-  	<i class="fa fa-tag"></i>
-    <a href="/tags/HEXO/">HEXO</a>, <a href="/tags/云服务器/">云服务器</a>
-  </div>
-
-<div class="clear"></div>
-      
-    </header>
-    <div class="entry">
-      
-        <p>近来国内各家云服务公司都在大力烧钱推广，什么半年免费试用啦，特定行业公司扶持计划啦，答题送代金券啦，活动繁多。正好最近看了一篇Python全栈指南（<a href="http://www.fullstackpython.com/" target="_blank" rel="external">Full Stack Python</a>），所谓实践出真知，特别想自己动手试试，一来可以实践下“全栈开发”，二来可以深入了解下当前如此火爆的“云服务”。于是便申请了“阿里云”的半年免费ECS云服务器，阿里也是蛮给力的，第二天就通过了（我才不说2014年底申请的时候被无情拒绝了一次呢）。再掏钱买了个1M带宽，自己的小服务器就齐备了。</p>
-<p>一上来就开发并部署一个应用总是不现实的，聪明的我想到可以先把BLOG迁到服务器上，之前是托管在Github Pages上的，然后就有了下面的流水账。</p>
-
-      
-    </div>
-    <footer>
-      
-        <div class="alignleft">
-            <a href="/2015/01/05/deploy-hexo-on-cloud/#more" class="more-link"><i class="fa fa-chevron-right"></i>Read More</a>
         </div>
         
         
